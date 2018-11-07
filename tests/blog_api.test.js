@@ -58,7 +58,7 @@ test('HTTP POST request works', async () => {
     const response = await api
         .get('/api/blogs')
 
-    const titles = response.body.map(b => b.title)
+    const titles = response.body.map(a => a.title)
 
     expect(response.body.length).toBe(initialBlogs.length + 1)
     expect(titles).toContain('Blogien Maailma')
