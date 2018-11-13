@@ -69,7 +69,6 @@ test.only('If likes are not given a value, it should be 0', async () => {
         title: 'Blog world',
         author: 'Life',
         url: 'termos can',
-        likes: 0
     }
 
     await api
@@ -81,9 +80,7 @@ test.only('If likes are not given a value, it should be 0', async () => {
     const response = await api
         .get('/api/blogs')
 
-        console.log('tulos: ', response.body)
-
-    expect(response.body.likes).toBe(0)
+    expect(response.body[response.body.length - 1].likes).toBe(0)
 })
 
 test('the first blog´s title is `Blogien maailma`', async () => {

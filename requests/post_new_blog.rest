@@ -5,5 +5,5 @@ Content-Type: application/json
     "title": "Terve",
     "author": "Kiva koulu",
     "url": "joku",
-    "likes": 1
+    "likes": 4
 }
