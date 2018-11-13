@@ -64,6 +64,27 @@ test('HTTP POST request works', async () => {
     expect(titles).toContain('Blogien Maailma')
 })
 
+test.only('If likes are not given a value, it should be 0', async () => {
+    const newBlog = {
+        title: 'Blog world',
+        author: 'Life',
+        url: 'termos can',
+        likes: 0
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+    const response = await api
+        .get('/api/blogs')
+
+        console.log('tulos: ', response.body)
+
+    expect(response.body.likes).toBe(0)
+})
 
 test('the first blog´s title is `Blogien maailma`', async () => {
     const response = await api
