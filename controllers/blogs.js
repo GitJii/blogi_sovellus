@@ -29,8 +29,8 @@ blogsRouter.post('/', async (request, response) => {
   try {
     const body = request.body
 
-    if (body.title === undefined) {
-      return response.status(400).json({ error: 'title missing' })
+    if (body.title === undefined || body.url === undefined) {
+      return response.status(400).json({ error: 'title or url missing' })
     }
 
     const blog = new Blog({
@@ -47,13 +47,6 @@ blogsRouter.post('/', async (request, response) => {
     console.log(exception)
     response.status(500).json({ error: 'something went wrong...' })
   }
-  /*
-    blog
-      .save()
-      .then(result => {
-        response.status(201).json(result)
-      })
-  */
 })
 
 module.exports = blogsRouter

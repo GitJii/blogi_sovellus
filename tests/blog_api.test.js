@@ -64,7 +64,7 @@ test('HTTP POST request works', async () => {
     expect(titles).toContain('Blogien Maailma')
 })
 
-test.only('If likes are not given a value, it should be 0', async () => {
+test('If likes are not given a value, it should be 0', async () => {
     const newBlog = {
         title: 'Blog world',
         author: 'Life',
@@ -82,6 +82,28 @@ test.only('If likes are not given a value, it should be 0', async () => {
 
     expect(response.body[response.body.length - 1].likes).toBe(0)
 })
+
+test('If request doesnt include fields title and url, request is responded  with bad request 400', async () => {
+    const newBlog = {
+        author: 'Tekijä',
+        likes: 0
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(400)
+        .expect('Content-Type', /application\/json/)
+
+    /*
+        const response = await api
+    .get('/api/blogs')
+
+expect(response.body[response.body.length - 1].likes).toBe(0)
+
+    */
+})
+
 
 test('the first blog´s title is `Blogien maailma`', async () => {
     const response = await api
