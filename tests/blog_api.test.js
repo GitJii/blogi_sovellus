@@ -2,116 +2,181 @@ const supertest = require('supertest')
 const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
-
-const initialBlogs = [
-    {
-        title: 'Blogien Maailma',
-        author: 'Elämä',
-        url: 'termospullo',
-        likes: 0
-    },
-    {
-        title: 'Blogien elämä',
-        author: 'Kuolema',
-        url: 'tinakenkatytto',
-        likes: 2
-    }
-]
+const { initialBlogs, format, nonExistingId, blogsInDb } = require('./test_helper')
 
 
-beforeAll(async () => {
-    await Blog.remove({})
+describe('when database has been initialized ', async () => {
+    beforeAll(async () => {
+        await Blog.remove({})
 
-    for (let blog of initialBlogs) {
-        let blogObject = new Blog(blog)
-        await blogObject.save()
-    }
-})
+        for (let blog of initialBlogs) {
+            let blogObject = new Blog(blog)
+            await blogObject.save()
+        }
+    })
+    describe('HTTP GET requests', async () => {
+        test('blogs are returned as json and HTTP GET request works', async () => {
+            const blogsBefore = await blogsInDb()
 
-test('blogs are returned as json and HTTP GET request works', async () => {
-    await api
-        .get('/api/blogs')
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
-})
+            await api
+                .get('/api/blogs')
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
 
-test('there are two blogs', async () => {
-    const response = await api
-        .get('/api/blogs')
-    expect(response.body.length).toBe(2)
-})
+            const blogsAfter = await blogsInDb()
 
-test('HTTP POST request works', async () => {
-    const newBlog = {
-        title: 'Blogien Muailma',
-        author: 'Ellämmä',
-        url: 'teremospullo',
-        likes: 4
-    }
+            expect(blogsAfter.length).toBe(blogsBefore.length)
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
+            const titles = blogsAfter.map(b => b.title)
+            blogsBefore.forEach(blog => {
+                expect(titles).toContain(blog.title)
+            })
+        })
 
-    const response = await api
-        .get('/api/blogs')
+        test('there is two blogs', async () => {
+            const blogsBefore = await blogsInDb()
 
-    const titles = response.body.map(a => a.title)
+            await api
+                .get('/api/blogs')
 
-    expect(response.body.length).toBe(initialBlogs.length + 1)
-    expect(titles).toContain('Blogien Maailma')
-})
+            const blogsAfter = await blogsInDb()
 
-test('If likes are not given a value, it should be 0', async () => {
-    const newBlog = {
-        title: 'Blog world',
-        author: 'Life',
-        url: 'termos can',
-    }
+            expect(blogsAfter.length).toBe(blogsBefore.length)
+            expect(blogsAfter.length).toBe(2)
+        })
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
+        test('individual blogs are returned as json when request is GET to path /api/blogs/:id', async () => {
+            const blogsInDatabase = await blogsInDb()
+            const firstBlog = blogsInDatabase[0]
 
-    const response = await api
-        .get('/api/blogs')
-
-    expect(response.body[response.body.length - 1].likes).toBe(0)
-})
-
-test('If request doesnt include fields title and url, request is responded  with bad request 400', async () => {
-    const newBlog = {
-        author: 'Tekijä',
-        likes: 0
-    }
-
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(400)
-        .expect('Content-Type', /application\/json/)
-
-    /*
-        const response = await api
-    .get('/api/blogs')
-
-expect(response.body[response.body.length - 1].likes).toBe(0)
-
+            /*
+            console.log('firstbblog is: ', firstBlog)
+            console.log('firstblog.id: ', firstBlog.id)
+            console.log('blogsInDatabase: ', blogsInDatabase)
     */
-})
+            await api
+                .get(`/api/blogs/${firstBlog.id}`)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            expect(blogsInDatabase[0].title).toBe(firstBlog.title)
+        })
+
+        test('404 returned when request is GET /api/blogs/:id nonexisting proper id', async () => {
+            const properNonexistingId = await nonExistingId()
+
+            const blogsBefore = await blogsInDb()
+
+            await api
+                .get(`/api/blogs/${properNonexistingId}`)
+                .expect(404)
+
+            const blogsAfter = await blogsInDb()
+
+            expect(blogsAfter.length).toBe(blogsBefore.length)
+        })
+
+        test('400 is returned when request is GET /api/blogs/:id with invalid id', async () => {
+            const invalidId = "12398"
+
+            const blogsBefore = await blogsInDb()
+
+            await api
+                .get(`/api/blogs/${invalidId}`)
+                .expect(400)
+
+            const blogsAfter = await blogsInDb()
+
+            expect(blogsAfter.length).toBe(blogsBefore.length)
+        })
+        test('the first blog´s title is `Blogien maailma`', async () => {
+            const blogsBefore = await blogsInDb()
+
+            const response = await api
+                .get('/api/blogs')
+
+            const blogsAfter = await blogsInDb()
+
+            expect(blogsAfter.length).toBe(blogsBefore.length)
+            expect(response.body[0].title).toBe('Blogien Maailma')
+        })
+    })
+    describe('HTTP POST requests', async () => {
+        test('HTTP POST request works', async () => {
+            const blogsBefore = await blogsInDb()
+
+            const newBlog = {
+                title: 'Blogien Muailma',
+                author: 'Ellämmä',
+                url: 'teremospullo',
+                likes: 0
+            }
+
+            await api
+                .post('/api/blogs')
+                .send(newBlog)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const blogsAfter = await blogsInDb()
+            const blogsFinal = await blogsAfter.map(b => format(b))
+            /* Yllä formattoidaan blogsAfteriin kuuluva id pois */
+            /*
+                const response = await api
+                        .get('/api/blogs')
+             */
+            /*
+                       const titles = response.body.map(a => a.title)
+             */
 
 
-test('the first blog´s title is `Blogien maailma`', async () => {
-    const response = await api
-        .get('/api/blogs')
+            expect(blogsAfter.length).toBe(blogsBefore.length + 1)
+            expect(blogsFinal).toContainEqual(newBlog)
+        })
 
-    expect(response.body[0].title).toBe('Blogien Maailma')
-})
+        test('If request doesnt include fields title and url, request is responded  with bad request 400', async () => {
 
-afterAll(() => {
-    server.close()
+            const newBlog = {
+                author: 'Tekijä',
+                likes: 0
+            }
+            const blogsBefore = await blogsInDb()
+
+            await api
+                .post('/api/blogs')
+                .send(newBlog)
+                .expect(400)
+                .expect('Content-Type', /application\/json/)
+
+            const blogsAfter = await blogsInDb()
+
+            expect(blogsAfter.length).toBe(blogsBefore.length)
+        })
+
+        test('If likes are not given a value, it should be 0', async () => {
+
+            const newBlog = {
+                title: 'Blog world',
+                author: 'Life',
+                url: 'termos can',
+            }
+
+            const blogsBefore = await blogsInDb()
+
+            await api
+                .post('/api/blogs')
+                .send(newBlog)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const blogsAfter = await blogsInDb()
+
+            expect(blogsBefore.length).toBe(blogsAfter.length - 1)
+            expect(blogsAfter[blogsAfter.length - 1].likes).toBe(0)
+        })
+    })
+
+    afterAll(() => {
+        server.close()
+    })
 })
