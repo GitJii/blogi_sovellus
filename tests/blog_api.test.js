@@ -176,7 +176,39 @@ describe('when database has been initialized ', async () => {
         })
     })
 
-    afterAll(() => {
-        server.close()
+    describe('HTTP DELETE request tests', async () => {
+        test('HTTP DELETE request actually works', async () => {
+
+            const blogsBefore = await blogsInDb()
+
+            const newBlog = {
+                title: 'Blogit',
+                author: 'Elä',
+                url: 'terpullo',
+                likes: 0
+            }
+
+            await api
+                .post('/api/blogs')
+                .send(newBlog)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const blogsMiddle = await blogsInDb()
+
+            await api
+                .delete(`/api/blogs/${blogsMiddle[blogsMiddle.length - 1].id}`)
+                .expect(204)
+
+            const blogsAfter = await blogsInDb()
+            const blogsFinal = blogsAfter.map(b => b.title)
+
+            expect(blogsAfter.length).toBe(blogsBefore.length)
+            expect(blogsFinal).not.toContainEqual(newBlog.title)
+        })
+
+        afterAll(() => {
+            server.close()
+        })
     })
 })
