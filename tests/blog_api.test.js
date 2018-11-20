@@ -175,7 +175,6 @@ describe('when database has been initialized ', async () => {
             expect(blogsAfter[blogsAfter.length - 1].likes).toBe(0)
         })
     })
-
     describe('HTTP DELETE request tests', async () => {
         test('HTTP DELETE request actually works', async () => {
 
@@ -206,9 +205,39 @@ describe('when database has been initialized ', async () => {
             expect(blogsAfter.length).toBe(blogsBefore.length)
             expect(blogsFinal).not.toContainEqual(newBlog.title)
         })
+    })
+    describe('HTTP PUT request tests', async () => {
+        test('HTTP PUT request acutally works', async () => {
+            const blogsBefore = await blogsInDb()
 
-        afterAll(() => {
-            server.close()
+            const newBlog = {
+                title: 'Blogit',
+                author: 'Elää ja kuolla',
+                url: 'termos',
+                likes: 0
+            }
+
+            await api
+                .post('/api/blogs')
+                .send(newBlog)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const blogsMiddle = await blogsInDb()
+
+            await api
+                .put(`/api/blogs/${blogsMiddle[blogsMiddle.length - 1].id}`)
+                .send(newBlog)
+                .expect(200)
+
+            const blogsAfter = await blogsInDb()
+
+            expect(blogsAfter[blogsAfter.length - 1].likes).toBe(blogsMiddle[blogsMiddle.length - 1].likes + 1)
+            expect(blogsAfter.length).toBe(blogsBefore.length + 1)
         })
+    })
+
+    afterAll(() => {
+        server.close()
     })
 })

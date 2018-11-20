@@ -1,0 +1,9 @@
+PUT http://localhost:3001/api/blogs/5bf3c0ab2ff1743b3850cf5d
+Content-Type: application/json
+
+{
+    "title": "blogien maailma",
+    "author": "Elämä",
+    "url": "termospullo",
+    "likes": 0
+}
