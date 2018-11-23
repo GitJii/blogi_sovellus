@@ -1,12 +1,30 @@
 const supertest = require('supertest')
+const bcrypt = require('bcrypt')
 const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
-const { initialBlogs, format, nonExistingId, blogsInDb } = require('./test_helper')
+const User = require('../models/user')
+const { initialBlogs, format, nonExistingId, blogsInDb, usersInDb } = require('./test_helper')
 
+let userId
+
+const createUser = async (name, username, password) => {
+    const saltRounds = 10
+    const passwordHash = await bcrypt.hash(password, saltRounds)
+
+    const user = new User({
+        username,
+        name,
+        passwordHash
+    })
+    return await user.save()
+}
 
 describe('when database has been initialized ', async () => {
     beforeAll(async () => {
+        const user = await createUser('tero', 'salaisuus', 'jussi')
+        userId = user._id
+
         await Blog.remove({})
 
         for (let blog of initialBlogs) {
@@ -109,7 +127,8 @@ describe('when database has been initialized ', async () => {
                 title: 'Blogien Muailma',
                 author: 'Ellämmä',
                 url: 'teremospullo',
-                likes: 0
+                likes: 0,
+                userId: userId
             }
 
             await api
@@ -119,19 +138,11 @@ describe('when database has been initialized ', async () => {
                 .expect('Content-Type', /application\/json/)
 
             const blogsAfter = await blogsInDb()
-            const blogsFinal = await blogsAfter.map(b => format(b))
-            /* Yllä formattoidaan blogsAfteriin kuuluva id pois */
-            /*
-                const response = await api
-                        .get('/api/blogs')
-             */
-            /*
-                       const titles = response.body.map(a => a.title)
-             */
-
+            const blogsFinal = await blogsAfter.map(Blog.format)
+            const blogsTitles = blogsFinal.map(b => b.title)
 
             expect(blogsAfter.length).toBe(blogsBefore.length + 1)
-            expect(blogsFinal).toContainEqual(newBlog)
+            expect(blogsTitles).toContainEqual(newBlog.title)
         })
 
         test('If request doesnt include fields title and url, request is responded  with bad request 400', async () => {
@@ -159,6 +170,7 @@ describe('when database has been initialized ', async () => {
                 title: 'Blog world',
                 author: 'Life',
                 url: 'termos can',
+                userId: userId
             }
 
             const blogsBefore = await blogsInDb()
@@ -184,7 +196,8 @@ describe('when database has been initialized ', async () => {
                 title: 'Blogit',
                 author: 'Elä',
                 url: 'terpullo',
-                likes: 0
+                likes: 0,
+                userId: userId
             }
 
             await api
@@ -200,7 +213,7 @@ describe('when database has been initialized ', async () => {
                 .expect(204)
 
             const blogsAfter = await blogsInDb()
-            const blogsFinal = blogsAfter.map(b => b.title)
+            const blogsFinal = blogsAfter.map(Blog.format)
 
             expect(blogsAfter.length).toBe(blogsBefore.length)
             expect(blogsFinal).not.toContainEqual(newBlog.title)
@@ -214,7 +227,8 @@ describe('when database has been initialized ', async () => {
                 title: 'Blogit',
                 author: 'Elää ja kuolla',
                 url: 'termos',
-                likes: 0
+                likes: 0,
+                userId: userId
             }
 
             await api
@@ -236,7 +250,56 @@ describe('when database has been initialized ', async () => {
             expect(blogsAfter.length).toBe(blogsBefore.length + 1)
         })
     })
+    describe('when there is one user at db at first', async () => {
+        beforeAll(async () => {
+            await User.remove({})
+            const user = new User({ username: 'pera', password: 'salaisuus' })
+            await user.save()
+        })
 
+        test('POST /api/users succeeds with a new username', async () => {
+            const usersBefore = await usersInDb()
+
+            const newUser = {
+                username: 'teroTin',
+                name: 'Tero Tinto',
+                password: 'salaisuus'
+            }
+
+            await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const usersAfter = await usersInDb()
+            expect(usersAfter.length).toBe(usersBefore.length + 1)
+
+            const usernames = usersAfter.map(u => u.username)
+            expect(usernames).toContain(newUser.username)
+        })
+
+        test('POST /api/users fails with right statuscode and right message(username is taken)', async () => {
+            const usersBefore = await usersInDb()
+
+            const newUser = {
+                username: 'pera',
+                name: 'Pena Rahikainen',
+                password: 'salamies'
+            }
+
+            const result = await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(400)
+                .expect('Content-Type', /application\/json/)
+
+            expect(result.body).toEqual({ error: 'username has to be unique' })
+
+            const usersAfter = await usersInDb()
+            expect(usersAfter.length).toBe(usersBefore.length)
+        })
+    })
     afterAll(() => {
         server.close()
     })
