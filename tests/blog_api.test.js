@@ -326,7 +326,17 @@ describe('when database has been initialized ', async () => {
             const newUser = {
                 username: 'petteri',
                 name: 'Petteri Rahikainen',
-                password: 'pro'
+                password: 'pro',
+                blogs: [
+                    {
+                        id: '5bfcfa93f4737d33d4fa800e',
+                        title: 'blog.title',
+                        author: 'blog.author',
+                        url: 'moi',
+                        user: 'petteri',
+                        likes: 0
+                    }
+                ]
             }
 
             await api
@@ -336,7 +346,7 @@ describe('when database has been initialized ', async () => {
                 .expect('Content-Type', /application\/json/)
 
             const usersAfter = await usersInDb()
-            console.log('usersAfter[usersAfter.length - 1].adult', usersAfter[usersAfter.length - 1].adult)
+            console.log('usersAfter[usersAfter.length - 1]', usersAfter[usersAfter.length - 1])
             expect(usersAfter[usersAfter.length - 1].adult).toBe(true)
             expect(usersAfter.length).toBe(usersBefore.length + 1)
         })

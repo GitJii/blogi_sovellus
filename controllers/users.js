@@ -3,7 +3,10 @@ const usersRouter = require('express').Router()
 const User = require('../models/user')
 
 usersRouter.get('/', async (request, response) => {
-    const users = await User.find({})
+    const users = await User
+        .find({})
+        .populate('blogs', { title: 1, author: 1 })
+
     response.json(users.map(User.format))
 })
 
@@ -12,6 +15,7 @@ usersRouter.post('/', async (request, response) => {
         const body = request.body
 
         const existingUser = await User.find({ username: body.username })
+
         if (existingUser.length > 0) {
             return response.status(400).json({ error: 'username has to be unique' })
         }
@@ -20,7 +24,6 @@ usersRouter.post('/', async (request, response) => {
             return response.status(400).json({ error: 'password too short' })
         }
 
-
         const saltRounds = 10
         const passwordHash = await bcrypt.hash(body.password, saltRounds)
 
@@ -28,6 +31,7 @@ usersRouter.post('/', async (request, response) => {
             username: body.username,
             name: body.name,
             adult: body.adult === undefined ? true : body.adult,
+            blogs: body.blogs,
             passwordHash
         })
 
