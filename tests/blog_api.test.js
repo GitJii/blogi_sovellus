@@ -299,7 +299,49 @@ describe('when database has been initialized ', async () => {
             const usersAfter = await usersInDb()
             expect(usersAfter.length).toBe(usersBefore.length)
         })
+
+        test('POST /api/users fails with too short password (less than 3 characters) ', async () => {
+            const usersBefore = await usersInDb()
+
+            const newUser = {
+                username: 'petteri',
+                name: 'Petteri Rahikainen',
+                password: 'pr'
+            }
+            const result = await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(400)
+                .expect('Content-Type', /application\/json/)
+
+            expect(result.body).toEqual({ error: 'password too short' })
+
+            const usersAfter = await usersInDb()
+            expect(usersAfter.length).toBe(usersBefore.length)
+        })
+
+        test('POST /api/users if not set, new user is adult', async () => {
+            const usersBefore = await usersInDb()
+
+            const newUser = {
+                username: 'petteri',
+                name: 'Petteri Rahikainen',
+                password: 'pro'
+            }
+
+            await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const usersAfter = await usersInDb()
+            console.log('usersAfter[usersAfter.length - 1].adult', usersAfter[usersAfter.length - 1].adult)
+            expect(usersAfter[usersAfter.length - 1].adult).toBe(true)
+            expect(usersAfter.length).toBe(usersBefore.length + 1)
+        })
     })
+
     afterAll(() => {
         server.close()
     })
