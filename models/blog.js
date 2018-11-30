@@ -14,8 +14,8 @@ blogSchema.statics.format = (blog) => {
         title: blog.title,
         author: blog.author,
         url: blog.url,
-        user: blog.user,
-        likes: 0
+        likes: 0,
+        user: blog.user
     }
 }
 

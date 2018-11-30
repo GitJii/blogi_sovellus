@@ -4,7 +4,7 @@ const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
 const User = require('../models/user')
-const { initialBlogs, format, nonExistingId, blogsInDb, usersInDb } = require('./test_helper')
+const { initialBlogs, nonExistingId, blogsInDb, usersInDb } = require('./test_helper')
 
 let userId
 
@@ -326,17 +326,7 @@ describe('when database has been initialized ', async () => {
             const newUser = {
                 username: 'petteri',
                 name: 'Petteri Rahikainen',
-                password: 'pro',
-                blogs: [
-                    {
-                        id: '5bfcfa93f4737d33d4fa800e',
-                        title: 'blog.title',
-                        author: 'blog.author',
-                        url: 'moi',
-                        user: 'petteri',
-                        likes: 0
-                    }
-                ]
+                password: 'pro'
             }
 
             await api
@@ -346,8 +336,41 @@ describe('when database has been initialized ', async () => {
                 .expect('Content-Type', /application\/json/)
 
             const usersAfter = await usersInDb()
-            console.log('usersAfter[usersAfter.length - 1]', usersAfter[usersAfter.length - 1])
+
             expect(usersAfter[usersAfter.length - 1].adult).toBe(true)
+            expect(usersAfter.length).toBe(usersBefore.length + 1)
+        })
+        test('testing näkymä', async () => {
+            const usersBefore = await usersInDb()
+
+            const newUser = {
+                username: 'kayttaja',
+                name: 'nimi',
+                password: 'salis'
+            }
+
+            const user2 = await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const newBlog = {
+                title: 'otsikko',
+                author: 'tekija',
+                url: 'jokuvaa',
+                likes: 4,
+                userId: user2.body.id
+            }
+
+            await api
+                .post('/api/blogs')
+                .send(newBlog)
+                .expect(200)
+                .expect('Content-Type', /application\/json/)
+
+            const usersAfter = await usersInDb()
+
             expect(usersAfter.length).toBe(usersBefore.length + 1)
         })
     })

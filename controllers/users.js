@@ -13,8 +13,9 @@ usersRouter.get('/', async (request, response) => {
 usersRouter.post('/', async (request, response) => {
     try {
         const body = request.body
-
         const existingUser = await User.find({ username: body.username })
+
+        console.log('ongelma usersrouterissa')
 
         if (existingUser.length > 0) {
             return response.status(400).json({ error: 'username has to be unique' })
@@ -31,7 +32,7 @@ usersRouter.post('/', async (request, response) => {
             username: body.username,
             name: body.name,
             adult: body.adult === undefined ? true : body.adult,
-            blogs: body.blogs,
+            blogs: body.blogs === undefined ? [] : body.blogs,
             passwordHash
         })
 

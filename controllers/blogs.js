@@ -14,6 +14,7 @@ blogsRouter.post('/', async (request, response) => {
   try {
     const body = request.body
 
+    console.log('body: ', body)
     if (body.title === undefined || body.url === undefined) {
       return response.status(400).json({ error: 'title or url missing' })
     }
@@ -34,7 +35,6 @@ blogsRouter.post('/', async (request, response) => {
     await user.save()
 
     response.json(Blog.format(blog))
-
   } catch (exception) {
     console.log(exception)
     response.status(500).json({ error: 'something went wrong...' })
