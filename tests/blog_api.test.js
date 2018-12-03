@@ -95,8 +95,8 @@ describe('when database has been initialized ', async () => {
         })
 
         test('400 is returned when request is GET /api/blogs/:id with invalid id', async () => {
-            const invalidId = "12398"
-
+            const invalidId = '12398'
+            /*Ennen yllä oleva oli kaksilla hipsuilla "" */
             const blogsBefore = await blogsInDb()
 
             await api
