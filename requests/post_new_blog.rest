@@ -1,7 +1,6 @@
 POST http://localhost:3001/api/blogs
 Content-Type: application/json
-Authorization: bearer "tänne oikea token"
-
+Authorization: 'Tähän tulee token'
 {
     "title": "moi",
     "author": "Kiva koulu",

@@ -27,30 +27,34 @@ const favoriteBlog = (blogs) => {
 }
 
 const mostBlogs = (blogs) => {
-    /* Funktio selvittää kirjoittajan, kenellä on 
-    eniten blogeja. Funktion paluuarvo kertoo myös
-     ennätysbloggaajan blogien määrän */
 
-    const countedLikes = blogs.reduce((allAuthors, author) => {
-        if (author in allAuthors) {
-            allAuthors[author]++
+    const countedBlogs = blogs.reduce((allBlogs, blog) => {
+        if (blog.author in allBlogs) {
+            allBlogs[blog.author]++
         } else {
-            allAuthors[author] = 1
+            allBlogs[blog.author] = 1
         }
-        return allAuthors
+        return allBlogs
     }, {})
-    console.log('countedLikes: ', countedLikes)
-    
-    return countedLikes
-    /*
-        if (blogs[0] === undefined) {
-            return 0
-        } else {
-            blogs.reduce((author, blog) => {
-                return author + blog[author]
-            })
+
+    const mostBlogsAmount = Object.entries(countedBlogs).map(obj => obj[1]).sort((a, b) => b - a)[0]
+
+    const authorWithMostBlogs = Object.entries(countedBlogs).map(obj => {
+        if (obj[1] === mostBlogsAmount) {
+            return obj[0]
         }
-        */
+    }).filter(author => {
+        if (author !== undefined) {
+            return author
+        }
+    })[0]
+
+    const result = {
+        author: authorWithMostBlogs,
+        blogs: mostBlogsAmount
+    }
+
+    return result
 }
 
 module.exports = {

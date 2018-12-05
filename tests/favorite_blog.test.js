@@ -1,6 +1,6 @@
 const favoriteBlog = require('../utils/list_helper').favoriteBlog
 
-describe('blog with most likes (favorite blog) is found correctly', () => {
+describe.skip('blog with most likes (favorite blog) is found correctly', () => {
 
     test('when there is no blogs', () => {
         const blog = []

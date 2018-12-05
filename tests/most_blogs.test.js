@@ -1,28 +1,28 @@
 const mostBlogs = require('../utils/list_helper').mostBlogs
 
-describe.skip('writer that has most blogs', () => {
+describe('writer that has most blogs', () => {
 
     test('when there is no blogs', () => {
         const blog = []
 
         const result = mostBlogs(blog)
-       
-        expect(result).toEqual(undefined)
-       
+
+        expect(result).toEqual({})
+
     })
 
     test('when there is only one blog', () => {
         const blog = [{
-            "title": "Elämä",
-            "author": "Kova koulu",
-            "url": "moi",
+            "title": 'Elämä',
+            "author": 'Kova koulu',
+            "url": 'moi',
             "likes": 42
         }]
 
         const result = mostBlogs(blog)
 
-        expect(result).toEqual('Elämä')
-        
+        expect(result.author).toEqual('Kova koulu')
+
     })
 
     test('when there is many blogs', () => {
@@ -77,10 +77,10 @@ describe.skip('writer that has most blogs', () => {
             }
         ]
 
-        const result = mostBlogs(blogs)
+        const result = mostBlogs(blogs).author
 
         console.log('result: ', result)
 
-        expect(result).toEqual('"Robert C. Martin"')
+        expect(result).toEqual('Robert C. Martin')
     })
 })
