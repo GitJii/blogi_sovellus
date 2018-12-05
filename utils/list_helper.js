@@ -57,9 +57,39 @@ const mostBlogs = (blogs) => {
     return result
 }
 
+const mostLikes = (blogs) => {
+    const countedLikes = blogs.reduce((allBlogs, blog) => {
+        if (blog.author in allBlogs) {
+            allBlogs[blog.author] = allBlogs[blog.author] + blog.likes
+        } else {
+            allBlogs[blog.author] = blog.likes
+        }
+        return allBlogs
+    }, {})
+
+    const amountOfMostLikes = Object.entries(countedLikes).map(obj => obj[1]).sort((a, b) => b - a)[0]
+    const authorWithMostLikes = Object.entries(countedLikes).map(obj => {
+        if (obj[1] === amountOfMostLikes) {
+            return obj[0]
+        }
+    }).filter(author => {
+        if (author !== undefined) {
+            return author
+        }
+    })[0]
+
+    const result = {
+        author: authorWithMostLikes,
+        likes: amountOfMostLikes === undefined ? 0 : amountOfMostLikes
+    }
+
+    return result
+}
+
 module.exports = {
     dummy,
     totalLikes,
     favoriteBlog,
-    mostBlogs
+    mostBlogs,
+    mostLikes
 }
