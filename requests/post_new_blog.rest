@@ -4,7 +4,7 @@ Authorization: "tähän tulee token"
 
 {
     "title": "moi",
-    "author": "Kiva koulu",
+    "author": "Kiva koulu3",
     "url":"jokuvaa",
     "likes": 4,
     "user": "5c00e9366aa5723668d26123"

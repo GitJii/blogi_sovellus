@@ -3,20 +3,7 @@ const Blog = require('../models/blog')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 
-
-/*
-const getTokenFrom = (request) => {
-  const authorization = request.get('authorization')
-  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
-    return authorization.substring(7)
-  }
-  return null
-} 
-*/
-
-
 blogsRouter.get('/', async (request, response) => {
-  console.log('blogsRouter.get check')
   const blogs = await Blog
     .find({})
     .populate('user', { username: 1, name: 1 })
@@ -29,9 +16,9 @@ blogsRouter.post('/', async (request, response) => {
 
   try {
 
-    const decodedToken = jwt.verify(request.token, process.env.SECRET) /*Ennen pelkkä token */
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
-    if (!request.token || !decodedToken.id) { /*Ennen pelkkä token */
+    if (!request.token || !decodedToken.id) {
       return response.status(401).json({ error: 'token missing or invalid' })
     }
 
@@ -83,10 +70,22 @@ blogsRouter.get('/:id', async (request, response) => {
 
 blogsRouter.delete('/:id', async (request, response) => {
   try {
-    await Blog.findByIdAndRemove(request.params.id)
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
-    response.status(204).end()
-  } catch (exception) {
+    if (!request.token || !decodedToken.id) {
+      return response.status(401).json({ error: 'token missing or invalid' })
+    }
+
+    const user = await User.findById(decodedToken.id)
+    const blog = await Blog.findById(request.params.id)
+
+    if (blog.user.toString() === user.id.toString()) {
+      await Blog.findByIdAndRemove(request.params.id)
+      response.status(204).end()
+    } else if (blog.user.toString() !== user.id.toString())
+      response.status(403).send({ error: 'you have no permission to delete others blogs' })
+  }
+  catch (exception) {
     console.log(exception)
     response.status(400).send({ error: 'malformatted id' })
   }

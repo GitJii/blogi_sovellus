@@ -1,1 +1,2 @@
-DELETE http://localhost:3001/api/blogs/5bf1a2d1b66e012a486c6885
+DELETE http://localhost:3001/api/blogs/5c0b60ad46ddd63e3806cefb
+Authorization: "tähän tulee token"
