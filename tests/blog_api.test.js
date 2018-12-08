@@ -122,7 +122,16 @@ describe('when database has been initialized ', async () => {
     describe('HTTP POST requests', async () => {
         test('HTTP POST request works', async () => {
             const blogsBefore = await blogsInDb()
+            /*
+                const user = await User.find({ username: 'salaisuus' })
 
+                console.log('-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_')
+                console.log('-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_')
+                console.log('user', user)
+                console.log('-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_')
+                console.log('-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_')
+
+            */
             const newBlog = {
                 title: 'Blogien Muailma',
                 author: 'Ellämmä',
@@ -131,8 +140,15 @@ describe('when database has been initialized ', async () => {
                 userId: userId
             }
 
+            /*
+        const token = await api
+        .post('/api/login')
+        .send(user)
+        .token
+*/
+
             await api
-                .post('/api/blogs')
+                .post('/api/blogs') /*, token */
                 .send(newBlog)
                 .expect(200)
                 .expect('Content-Type', /application\/json/)
