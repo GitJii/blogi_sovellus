@@ -14,24 +14,20 @@ const error = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
 
-const tokenExtractor = (request, response) => {
-    /*const getTokenFrom = (request) => {
-             */
+const getTokenFrom = (request) => {
     const authorization = request.get('authorization')
-    /*
-    console.log('authorization ', authorization)
-     */
     if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
-        request.token = authorization
-        /*Jos käytit samaa ratkaisua, refaktoroi
-         tokenin erottaminen middlewareksi, joka
-         ottaa tokenin Authorization-headerista
-         ja sijoittaa sen request-olion kenttään token. */
-
-        /* request.body. */
         return authorization.substring(7)
     }
     return null
+}
+
+const tokenExtractor = (request, response, next) => {
+
+    const token = getTokenFrom(request)
+    request.token = token
+
+    return next()
 }
 
 
